@@ -16,6 +16,9 @@ django.setup()
 # Load models
 from adventure.models import Room
 
+# Load generators
+from mapgen import RandomWalk, random_desc
+
 
 def make_room():
     pass
