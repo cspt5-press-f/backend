@@ -20,11 +20,31 @@ from adventure.models import Room
 from mapgen import RandomWalk, random_desc
 
 
-def make_room():
-    pass
+def make_save_room(room_name, room_desc, room_coord, items={}):
+    new_room = Room(
+        name=room_name,
+        description=room_desc,
+        coordinates=room_coord,
+        items=items
+    )
+    new_room.save()
 
-def save_room():
-    pass
+def get_room_name(room_desc):
+    """TEMPORARY NAME SPLITTING"""
+    return ' '.join(room_desc.split(' ')[1:4])
+
+
+def build_world(size):
+    path = RandomWalk(size=size)
+    path_coords = path.coordinates
+    for room_coord in path_coords:
+        temp_desc = next(random_desc())
+        make_save_room(
+            room_name = get_room_name(temp_desc),
+            room_desc = temp_desc,
+            room_coord = room_coord,
+        )
+
 
 if __name__ == "__main__":
-    print('complete')
+    build_world(500)
