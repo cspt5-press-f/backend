@@ -59,6 +59,7 @@ class Room(models.Model):
 class Item(models.Model):
     name = models.CharField(max_length=100, default='DEFAULT NAME')
     description = models.CharField(max_length=500, default='DEFAULT DESCRIPTION')
+    value = models.IntegerField(default=0)
 
     def __repr__(self):
         return self.name
