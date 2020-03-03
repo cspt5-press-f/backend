@@ -62,7 +62,7 @@ def move(request):
 
 @api_view(["POST"])
 def grab(request):
-    
+    pass
 
 
 @csrf_exempt
