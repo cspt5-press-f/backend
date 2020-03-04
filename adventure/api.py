@@ -10,13 +10,16 @@ import json
 
 # instantiate pusher
 # pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
-
+    
 @csrf_exempt
 @api_view(["GET"])
 def initialize(request):
     user = request.user
     player = user.player
     #player.currentRoom = 
+    request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
+    request.user.player.save() # Save the update to the DB
+    
     print(vars(player))
     return JsonResponse({"player": "yo"})
 
@@ -34,10 +37,29 @@ def initialize(request):
 def move(request):
     dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     data = json.loads(request.body)
-
+    move_direction = data["direction"]
+    player_coords = request.user.player.coordinates
     print(vars(request.user.player))
+
+    if move_direction == "n":
+        player_coords[1] = player_coords[1] + 1
+    elif move_direction == "e":
+        player_coords[0] = player_coords[0] + 1
+    elif move_direction == "s":
+        player_coords[1] = player_coords[1] - 1        
+    elif move_direction == "w":
+        player_coords[0] = player_coords[0] - 1
+        
+
+    if Room.objects.filter(coordinates=player_coords).exists():
+        print(Room.objects.filter(coordinates=player_coords).first().description)
+        request.user.player.coordinates = player_coords
+        request.user.player.save()
+        return JsonResponse({"direction": dirs[move_direction], "coordinates": request.user.player.coordinates})
+    else:
+        return JsonResponse({"error": "Sorry, can't move in that direction."})
     
-    return JsonResponse({"direction": dirs[data["direction"]]})
+    
 
     # dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     # reverse_dirs = {"n": "south", "s": "north", "e": "west", "w": "east"}
