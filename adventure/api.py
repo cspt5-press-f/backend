@@ -10,15 +10,18 @@ import json
 
 # instantiate pusher
 # pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
-
+    
 @csrf_exempt
 @api_view(["GET"])
 def initialize(request):
     user = request.user
     player = user.player
     #player.currentRoom = 
-    print(vars(player))
-    return JsonResponse({"player": "yo"})
+    request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
+    request.user.player.save() # Save the update to the DB
+    
+    # print(vars(user))
+    return JsonResponse({"message": f"Welcome {user.username}"})
 
     # user = request.user
     # player = user.player
@@ -34,10 +37,32 @@ def initialize(request):
 def move(request):
     dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     data = json.loads(request.body)
+    move_direction = data["direction"]
+    player_coords = request.user.player.coordinates
+    current_room = Room.objects.filter(coordinates=player_coords).first()
+    # print(vars(request.user.player))
 
-    print(vars(request.user.player))
+    if move_direction == "n":
+        player_coords[1] = player_coords[1] + 1
+    elif move_direction == "e":
+        player_coords[0] = player_coords[0] + 1
+    elif move_direction == "s":
+        player_coords[1] = player_coords[1] - 1        
+    elif move_direction == "w":
+        player_coords[0] = player_coords[0] - 1
+        
+
+    if Room.objects.filter(coordinates=player_coords).exists():
+        new_room = Room.objects.filter(coordinates=player_coords).first()
+        
+        request.user.player.coordinates = player_coords
+        request.user.player.save()
+        return JsonResponse({"coord": new_room.coordinates, "title": new_room.name, "description": new_room.description, "items": new_room.items})
+    else:
+        
+        return JsonResponse({"error": "Sorry, can't move in that direction.", "coord": current_room.coordinates, "title": current_room.name, "description": current_room.description, "items": current_room.items})
     
-    return JsonResponse({"direction": dirs[data["direction"]]})
+    
 
     # dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     # reverse_dirs = {"n": "south", "s": "north", "e": "west", "w": "east"}
