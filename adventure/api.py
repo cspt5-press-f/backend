@@ -20,8 +20,8 @@ def initialize(request):
     request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
     request.user.player.save() # Save the update to the DB
     
-    print(vars(player))
-    return JsonResponse({"player": "yo"})
+    # print(vars(user))
+    return JsonResponse({"message": f"Welcome {user.username}"})
 
     # user = request.user
     # player = user.player
@@ -39,7 +39,8 @@ def move(request):
     data = json.loads(request.body)
     move_direction = data["direction"]
     player_coords = request.user.player.coordinates
-    print(vars(request.user.player))
+    current_room = Room.objects.filter(coordinates=player_coords).first()
+    # print(vars(request.user.player))
 
     if move_direction == "n":
         player_coords[1] = player_coords[1] + 1
@@ -52,12 +53,14 @@ def move(request):
         
 
     if Room.objects.filter(coordinates=player_coords).exists():
-        print(Room.objects.filter(coordinates=player_coords).first().description)
+        new_room = Room.objects.filter(coordinates=player_coords).first()
+        
         request.user.player.coordinates = player_coords
         request.user.player.save()
-        return JsonResponse({"direction": dirs[move_direction], "coordinates": request.user.player.coordinates})
+        return JsonResponse({"coord": new_room.coordinates, "title": new_room.name, "description": new_room.description, "items": new_room.items})
     else:
-        return JsonResponse({"error": "Sorry, can't move in that direction."})
+        
+        return JsonResponse({"error": "Sorry, can't move in that direction.", "coord": current_room.coordinates, "title": current_room.name, "description": current_room.description, "items": current_room.items})
     
     
 
