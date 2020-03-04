@@ -108,3 +108,24 @@ def grab(request):
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+
+@csrf_exempt
+@api_view(["GET"])
+def drop(request):
+    user = request.user
+    player = user.player
+    current_room = Room.filter(coordinates=player.coordinates)
+    item = Item.get(pk=request.item)
+
+    # Remove item from player inventory
+    player_items = player.items
+    del player_items[str(item.pk)]
+    player.items = player_items
+    player.save()
+
+    # Place item into current room
+    current_room.items.update({str(item.pk): item.name})
+    current_room.save()
+
+    return JsonResponse({"Dropped": f"Item {item.name} from {user.username} to {current_room.name}"})
