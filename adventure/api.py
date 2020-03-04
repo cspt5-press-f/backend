@@ -108,3 +108,23 @@ def grab(request):
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+def grab(request):
+    user = request.user
+    player = user.player
+    current_room = Room.get(coordinates=player.current_room.coordinates)
+    from adventure.models import Item
+    items_in_room = current_room.items
+    #player_items = player.items
+    #player.currentRoom = 
+    
+    #add item to player
+    Player_items[str(item.pk)]
+    player_items = player.items
+    player.save()
+    
+    #place item to player_items
+    player_items.items.update({str(item.pk):item.name})
+    Player_items.save()
+    print(vars(player))
+    return JsonResponse({"added": f"Item {item.name} from {current_room.name} to {user.username}"})
