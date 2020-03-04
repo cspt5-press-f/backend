@@ -111,17 +111,16 @@ def say(request):
 
 
 @csrf_exempt
-@api_view(["GET"])
+@api_view(["POST"])
 def drop(request):
+    data = json.loads(request.body)
     user = request.user
     player = user.player
-    current_room = Room.filter(coordinates=player.coordinates)
-    item = Item.get(pk=request.item)
+    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    item = Item.objects.filter(pk=int(data['item'])).first()
 
     # Remove item from player inventory
-    player_items = player.items
-    del player_items[str(item.pk)]
-    player.items = player_items
+    del player.items[str(item.pk)]
     player.save()
 
     # Place item into current room
