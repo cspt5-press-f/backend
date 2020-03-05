@@ -11,6 +11,27 @@ import json
 # instantiate pusher
 # pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
 
+from adventure.models import Room
+import numpy as np
+
+@csrf_exempt
+@api_view(["GET"])
+def map(request):
+    generated_rooms = Room.objects.all()
+    x_coords = [room.coordinates[0] for room in generated_rooms]
+    x_min = np.amin(x_coords)
+    if x_min < 0:
+        x_coords = [x - x_min for x in x_coords]
+    y_coords = [room.coordinates[1] for room in generated_rooms]
+    y_min = np.amin(y_coords)
+    if y_min < 0:
+        y_coords = [y - y_min for y in y_coords]
+    return JsonResponse({
+        'player_coords': 'player_coords',
+        'x_coords': x_coords,
+        'y_coords': y_coords
+    })
+
 @csrf_exempt
 @api_view(["GET"])
 def initialize(request):
