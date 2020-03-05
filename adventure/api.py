@@ -16,11 +16,8 @@ import json
 def initialize(request):
     user = request.user
     player = user.player
-    #player.currentRoom = 
     request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
     request.user.player.save() # Save the update to the DB
-    
-    # print(vars(user))
     return JsonResponse({"message": f"Welcome {user.username}"})
 
 
@@ -62,6 +59,7 @@ def say(request):
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
 
 
+@csrf_exempt
 @api_view(["POST"])
 def grab(request):
     data = json.loads(request.body)
@@ -78,3 +76,23 @@ def grab(request):
     player.save()
 
     return JsonResponse({"Picked Up": f"Item {item.name} from {current_room.name} to {user.username}"})
+
+
+@csrf_exempt
+@api_view(["POST"])
+def drop(request):
+    data = json.loads(request.body)
+    user = request.user
+    player = user.player
+    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    item = Item.objects.filter(pk=int(data['item'])).first()
+
+    # Remove item from player inventory
+    del player.items[str(item.pk)]
+    player.save()
+
+    # Place item into current room
+    current_room.items.update({str(item.pk): item.name})
+    current_room.save()
+
+    return JsonResponse({"Dropped": f"Item {item.name} from {user.username} to {current_room.name}"})
