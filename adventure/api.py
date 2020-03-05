@@ -26,12 +26,25 @@ def initialize(request):
 @csrf_exempt
 @api_view(["GET"])
 def map(request):
-    generated_rooms = Room.objects.all()
-    x_coords = [room.coordinates[0] for room in generated_rooms]
+    # Define map size
+    map_size = 5
+    # Get center coord (player coordinates)
+    player_coords = request.user.player.coordinates 
+    # Set bounding box for query
+    x_max = player_coords[0] + map_size 
+    x_min = player_coords[0] - map_size
+    y_max = player_coords[1] + map_size
+    y_min = player_coords[1] - map_size
+    # Query for coordinates in database that are within bounding box
+    map_rooms = Room.objects.filter(coordinates__0_1>[x_min]).filter(coordinates__0_1<[x_max])\
+        .filter(coordinates__0_1>[y_min]).filter(coordinates__0_1<[y_max])
+
+    # Drop coordinates and Shift to all positive
+    x_coords = [room.coordinates[0] for room in map_rooms]
     x_min = np.amin(x_coords)
     if x_min < 0:
         x_coords = [x - x_min for x in x_coords]
-    y_coords = [room.coordinates[1] for room in generated_rooms]
+    y_coords = [Room.coordinates[1] for room in map_rooms]
     y_min = np.amin(y_coords)
     if y_min < 0:
         y_coords = [y - y_min for y in y_coords]
