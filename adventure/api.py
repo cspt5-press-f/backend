@@ -55,11 +55,6 @@ def move(request):
         return JsonResponse({"error": "Sorry, can't move in that direction.", "coord": current_room.coordinates, "title": current_room.name, "description": current_room.description, "items": current_room.items})
 
 
-@api_view(["POST"])
-def grab(request):
-    pass
-
-
 @csrf_exempt
 @api_view(["POST"])
 def say(request):
@@ -67,9 +62,8 @@ def say(request):
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
 
 
-@csrf_exempt
 @api_view(["POST"])
-def drop(request):
+def grab(request):
     data = json.loads(request.body)
     user = request.user
     player = user.player
@@ -77,11 +71,10 @@ def drop(request):
     item = Item.objects.filter(pk=int(data['item'])).first()
 
     # Remove item from player inventory
-    del player.items[str(item.pk)]
-    player.save()
-
-    # Place item into current room
-    current_room.items.update({str(item.pk): item.name})
+    del current_room.items[str(item.pk)]
     current_room.save()
 
-    return JsonResponse({"Dropped": f"Item {item.name} from {user.username} to {current_room.name}"})
+    player.items.update({str(item.pk): item.name})
+    player.save()
+
+    return JsonResponse({"Picked Up": f"Item {item.name} from {current_room.name} to {user.username}"})
