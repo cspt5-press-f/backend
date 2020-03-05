@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 # from pusher import Pusher
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from decouple import config
 from django.contrib.auth.models import User
 from .models import *
@@ -31,6 +31,37 @@ def map(request):
         'x_coords': x_coords,
         'y_coords': y_coords
     })
+
+@csrf_exempt
+@api_view(["POST"])
+def coord(request):
+    generated_rooms = Room.objects.all()
+
+    x_coords = [room.coordinates[0] for room in generated_rooms]
+    x_min = np.amin(x_coords)
+    if x_min < 0:
+        x_coords = [x - x_min for x in x_coords]
+    y_coords = [room.coordinates[1] for room in generated_rooms]
+    y_min = np.amin(y_coords)
+    if y_min < 0:
+        y_coords = [y - y_min for y in y_coords]
+
+    flag = False
+    for idx in range(len(x_coords)):
+        if request.data[0] == x_coords[idx] and request.data[1] == y_coords[idx]:
+            flag = True
+            break
+
+    if flag:
+        # print(request.data[0], request.data[1], 'True')
+        return JsonResponse({
+            'coord_exist': True,
+        })
+    else:
+        # print(request.data[0], request.data[1], 'False')
+        return JsonResponse({
+            'coord_exist': False,
+        })
 
 @csrf_exempt
 @api_view(["GET"])
