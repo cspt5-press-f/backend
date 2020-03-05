@@ -98,33 +98,26 @@ def move(request):
     #     return JsonResponse({'name':player.user.username, 'title':room.title, 'description':room.description, 'players':players, 'error_msg':"You cannot move that way."}, safe=True)
 
 
-@api_view(["POST"])
-def grab(request):
-    pass
-
-
 @csrf_exempt
 @api_view(["POST"])
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
 
+
+@api_view(["POST"])
 def grab(request):
+    data = json.loads(request.body)
     user = request.user
     player = user.player
-    current_room = Room.get(coordinates=player.current_room.coordinates)
-    from adventure.models import Item
-    items_in_room = current_room.items
-    #player_items = player.items
-    #player.currentRoom = 
-    
-    #add item to player
-    Player_items[str(item.pk)]
-    player_items = player.items
+    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    item = Item.objects.filter(pk=int(data['item'])).first()
+
+    # Remove item from player inventory
+    del current_room.items[str(item.pk)]
+    current_room.save()
+
+    player.items.update({str(item.pk): item.name})
     player.save()
-    
-    #place item to player_items
-    player_items.items.update({str(item.pk):item.name})
-    Player_items.save()
-    print(vars(player))
-    return JsonResponse({"added": f"Item {item.name} from {current_room.name} to {user.username}"})
+
+    return JsonResponse({"Picked Up": f"Item {item.name} from {current_room.name} to {user.username}"})
