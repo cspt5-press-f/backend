@@ -16,11 +16,8 @@ import json
 def initialize(request):
     user = request.user
     player = user.player
-    #player.currentRoom = 
     request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
     request.user.player.save() # Save the update to the DB
-    
-    # print(vars(user))
     return JsonResponse({"message": f"Welcome {user.username}"})
 
 
@@ -55,16 +52,30 @@ def move(request):
         return JsonResponse({"error": "Sorry, can't move in that direction.", "coord": current_room.coordinates, "title": current_room.name, "description": current_room.description, "items": current_room.items})
 
 
-@api_view(["POST"])
-def grab(request):
-    pass
-
-
 @csrf_exempt
 @api_view(["POST"])
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+
+@csrf_exempt
+@api_view(["POST"])
+def grab(request):
+    data = json.loads(request.body)
+    user = request.user
+    player = user.player
+    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    item = Item.objects.filter(pk=int(data['item'])).first()
+
+    # Remove item from player inventory
+    del current_room.items[str(item.pk)]
+    current_room.save()
+
+    player.items.update({str(item.pk): item.name})
+    player.save()
+
+    return JsonResponse({"Picked Up": f"Item {item.name} from {current_room.name} to {user.username}"})
 
 
 @csrf_exempt
