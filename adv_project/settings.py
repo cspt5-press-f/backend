@@ -96,7 +96,7 @@ DATABASES = {
         'USER': config('DB_USER', 'postgres'),
         'PASSWORD': config('DB_PASS', 'cspt5'),
         'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('DB_PORT', '5432'),
+        'PORT': config('DB_PORT', '45171'),
     }
 }
 
