@@ -25,6 +25,7 @@ def initialize(request):
         {
             "message": f"Welcome {user.username}",
             "map": player.map,
+            "items": player.items,
             }
             )
   
