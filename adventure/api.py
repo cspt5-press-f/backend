@@ -37,11 +37,11 @@ def map(request):
 def coord(request):
     generated_rooms = Room.objects.all()
 
-    x_coords = [room.coordinates[0] for room in generated_rooms]
+    x_coords = [room.coordinates[0] for room in generated_rooms[:7]]
     x_min = np.amin(x_coords)
     if x_min < 0:
         x_coords = [x - x_min for x in x_coords]
-    y_coords = [room.coordinates[1] for room in generated_rooms]
+    y_coords = [room.coordinates[1] for room in generated_rooms[:7]]
     y_min = np.amin(y_coords)
     if y_min < 0:
         y_coords = [y - y_min for y in y_coords]
