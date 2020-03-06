@@ -12,15 +12,22 @@ import uuid
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    currentRoom = models.IntegerField(default=0)
+    coordinates = ArrayField(
+                base_field=models.IntegerField(),
+                size=2,
+                default=list
+            )
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    items = JSONField(
+                    default=dict
+    )
     def initialize(self):
-        if self.currentRoom == 0:
-            self.currentRoom = Room.objects.first().id
+        if self.coordinates == 0:
+            self.coordinates = Room.objects.first().id
             self.save()
     def room(self):
         try:
-            return Room.objects.get(id=self.currentRoom)
+            return Room.objects.get(coordinates=self.coordinates)
         except Room.DoesNotExist:
             self.initialize()
             return self.room()

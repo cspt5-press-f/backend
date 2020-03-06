@@ -7,4 +7,6 @@ urlpatterns = [
     url('say', api.say),
     url('map', api.map),
     url('coord', api.coord),
+    url('drop', api.drop),
+    url('grab', api.grab),
 ]
