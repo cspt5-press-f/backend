@@ -6,6 +6,8 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 import uuid
 
+import numpy as np
+
 
 
 """ Player Class """
@@ -107,6 +109,7 @@ class Item(models.Model):
 ########################
 
 def get_map_coord(center_coord, size):
+    print('DEBUG: center_coord', center_coord)
     if size % 2 > 0:
         dist = int((size - 1) / 2)
     else:
@@ -126,7 +129,7 @@ def get_map_coord(center_coord, size):
     # Get coordinates for all rooms
     map_coords = [room.coordinates for room in rooms]
     # print('DEBUG TF MAP:', draw_tf_map(center_coord = center_coord, available_coord=map_coords,size=size))
-    return draw_tf_map(center_coord = center_coord, available_coord=map_coords,size=size)
+    return draw_tf_map(center_coord = center_coord, available_coord=map_coords, size=size)
 
 def draw_tf_map(center_coord, available_coord, size):
     if size % 2 > 0:
@@ -139,9 +142,9 @@ def draw_tf_map(center_coord, available_coord, size):
         def in_available(test_coord, available_coord):
             return (test_coord in available_coord)
 
-        for y in range(center_coord[1] - dist - 1, center_coord[1] + dist):
+        for y in np.arange(center_coord[1] - dist, center_coord[1] + dist + 1):
             temp_row = []
-            for x in range(center_coord[0] - dist, center_coord[0] + dist + 1):
+            for x in np.arange(center_coord[0] - dist, center_coord[0] + dist + 1):
                 temp_row.append(
                     in_available([x, y], available_coord))
             grid.append(temp_row)
