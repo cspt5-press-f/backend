@@ -45,7 +45,7 @@ def place_item_in_room(room, item):
     room.save()
 
 if __name__ == "__main__":
-    for _ in range(400):
+    for _ in range(500):
         try:
             place_item_in_room(
                 room=random.choice(rooms),

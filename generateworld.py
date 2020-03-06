@@ -20,11 +20,12 @@ from adventure.models import Room
 from mapgen import RandomWalk, random_desc
 
 
-def make_save_room(room_name, room_desc, room_coord, items={}):
+def make_save_room(room_name, room_desc, x, y, items={}):
     new_room = Room(
         name=room_name,
         description=room_desc,
-        coordinates=room_coord,
+        x=x,
+        y=y,
         items=items
     )
     new_room.save()
@@ -42,7 +43,8 @@ def build_world(size):
         make_save_room(
             room_name = get_room_name(temp_desc),
             room_desc = temp_desc,
-            room_coord = room_coord,
+            x = room_coord[0],
+            y = room_coord[1]
         )
 
 
