@@ -31,27 +31,31 @@ def map(request):
     # Get center coord (player coordinates)
     player_coords = request.user.player.coordinates 
     # Set bounding box for query
-    x_max = player_coords[0] + map_size 
-    x_min = player_coords[0] - map_size
-    y_max = player_coords[1] + map_size
-    y_min = player_coords[1] - map_size
-    # Query for coordinates in database that are within bounding box
-    map_rooms = Room.objects.filter(coordinates__0_1>[x_min]).filter(coordinates__0_1<[x_max])\
-        .filter(coordinates__0_1>[y_min]).filter(coordinates__0_1<[y_max])
+    def generate_bounding_box(coord, map_size):
+        dist = int(map_size/2)
+        x = np.arange(coord[0]-dist, coord[0]+dist)
+        y = np.arange(coord[1]-dist, coord[1]+dist)
+        print(x, y)
+        return list(zip(x, y))
 
-    # Drop coordinates and Shift to all positive
-    x_coords = [room.coordinates[0] for room in map_rooms]
-    x_min = np.amin(x_coords)
-    if x_min < 0:
-        x_coords = [x - x_min for x in x_coords]
-    y_coords = [Room.coordinates[1] for room in map_rooms]
-    y_min = np.amin(y_coords)
-    if y_min < 0:
-        y_coords = [y - y_min for y in y_coords]
+    bounding_coords = generate_bounding_box(player_coords, map_size)
+    print('Bounding Coords', bounding_coords)  # DEBUG
+    
+    test_room = Room.objects.first()
+    print('first x:', test_room.x)
+    print('test query on x', Room.objects.filter(x=0).all())
+
+    # # Query for coordinates in database that are within bounding box
+    # map_rooms = [Room.objects.filter(   coordinates__0_1=int(coordinates[0]), \
+    #                                     coordinates__1_2=int(coordinates[1]).first() \
+    #                                     for coordinates in bounding_coords]
+    # map_coords = [room.coordinates for room in map_rooms if room is not None]
+    # # Drop coordinates and Shift to all positive
+    # print('Map Coords', map_coords)  # DEBUG
     return JsonResponse({
         'player_coords': 'player_coords',
-        'x_coords': x_coords,
-        'y_coords': y_coords
+        # 'x_coords': x_coords,
+        # 'y_coords': y_coords
     })
   
   

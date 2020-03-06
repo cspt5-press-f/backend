@@ -48,17 +48,26 @@ def save_user_player(sender, instance, **kwargs):
 class Room(models.Model):
     name = models.CharField(max_length=100, default='DEFAULT NAME')
     description = models.CharField(max_length=500, default='DEFAULT DESCRIPTION')
-    coordinates = ArrayField(
-                    base_field=models.IntegerField(),
-                    size=2,
-                    default=list
-                )
     items = JSONField(
                     default=dict
     )
+    x = models.IntegerField(default=0)
+    y = models.IntegerField(default=0)
+    _coordinates = [0,0]
 
     def __repr__(self):
         return self.name
+    # Getter Methods
+    @property
+    def coordinates(self):
+        return self._coordinates
+    # Setter Methods
+    @coordinates.setter
+    def coordinates(self):
+        if self.x is not None and self.y is not None:
+            self._coordinates = [self.x, self.y]
+
+
 
 
 """ Generic Item Class """
