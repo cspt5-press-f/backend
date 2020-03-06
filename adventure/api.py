@@ -42,7 +42,7 @@ def map(request):
     print('Bounding Coords', bounding_coords)  # DEBUG
     
     test_room = Room.objects.first()
-    print('first x:', test_room.x)
+    print('first coordinates:', test_room.coordinates)
     print('test query on x', Room.objects.filter(x=0).all())
 
     # # Query for coordinates in database that are within bounding box
@@ -66,7 +66,7 @@ def move(request):
     data = json.loads(request.body)
     move_direction = data["direction"]
     player_coords = request.user.player.coordinates
-    current_room = Room.objects.filter(coordinates=player_coords).first()
+    current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
     # print(vars(request.user.player))  # DEBUG STATEMENT.  COMMENT OUT IN PROD.
 
     if move_direction == "n":
@@ -79,9 +79,9 @@ def move(request):
         player_coords[0] = player_coords[0] - 1
         
 
-    if Room.objects.filter(coordinates=player_coords).exists():
-        new_room = Room.objects.filter(coordinates=player_coords).first()
-        
+    if Room.objects.filter(x=player_coords[0], y=player_coords[1]).exists():
+        new_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
+        print('new room', new_room, 'new room coords', new_room.coordinates)
         request.user.player.coordinates = player_coords
         request.user.player.save()
         return JsonResponse({"coord": new_room.coordinates, "title": new_room.name, "description": new_room.description, "items": new_room.items})
@@ -103,7 +103,8 @@ def grab(request):
     data = json.loads(request.body)
     user = request.user
     player = user.player
-    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    player_coords = player.coordinates
+    current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
     item = Item.objects.filter(pk=int(data['item'])).first()
 
     # Remove item from player inventory
@@ -122,7 +123,8 @@ def drop(request):
     data = json.loads(request.body)
     user = request.user
     player = user.player
-    current_room = Room.objects.filter(coordinates=player.coordinates).first()
+    player_coords = player.coordinates
+    current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
     item = Item.objects.filter(pk=int(data['item'])).first()
 
     # Remove item from player inventory

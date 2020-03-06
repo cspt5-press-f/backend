@@ -60,7 +60,10 @@ class Room(models.Model):
     # Getter Methods
     @property
     def coordinates(self):
-        return self._coordinates
+        if self.x is not None and self.y is not None:
+            return [self.x, self.y]
+        else:
+            return self._coordinates
     # Setter Methods
     @coordinates.setter
     def coordinates(self):
