@@ -62,7 +62,6 @@ def map(request):
 # @csrf_exempt
 @api_view(["POST"])
 def move(request):
-    dirs={"n": "north", "s": "south", "e": "east", "w": "west"}
     data = json.loads(request.body)
     move_direction = data["direction"]
     player_coords = request.user.player.coordinates
@@ -78,10 +77,10 @@ def move(request):
     elif move_direction == "w":
         player_coords[0] = player_coords[0] - 1
         
+    print(f'DEBUG: player_map: {request.user.player.map}')
 
     if Room.objects.filter(x=player_coords[0], y=player_coords[1]).exists():
         new_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-        print('new room', new_room, 'new room coords', new_room.coordinates)
         request.user.player.coordinates = player_coords
         request.user.player.save()
         return JsonResponse({"coord": new_room.coordinates, "title": new_room.name, "description": new_room.description, "items": new_room.items})
