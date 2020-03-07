@@ -24,13 +24,13 @@ def initialize(request):
     current_room = Room.objects.filter(x=0, y=0).first()
     return JsonResponse(
         {
-            "message": f"Welcome {user.username}",
-            "map": player.map,
-            "player_items": player.items,
-            "room_items": current_room.items,
-            }
-            )
-  
+        "message": f"Welcome {user.username}",
+        "map": player.map,
+        "player_items": player.items,
+        "room_items": current_room.items,
+        }
+        )
+
 # @csrf_exempt
 @api_view(["POST"])
 def move(request):
