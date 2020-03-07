@@ -60,26 +60,26 @@ def move(request):
         request.user.player.save()
         return JsonResponse(
             {
-                "coord": new_room.coordinates, 
-                "title": new_room.name, 
-                "description": new_room.description, 
-                "player_items": player.items,
-                "room_items": current_room.items,
-                "map": request.user.player.map,
+            "coord": new_room.coordinates, 
+            "title": new_room.name, 
+            "description": new_room.description, 
+            "player_items": player.items,
+            "room_items": current_room.items,
+            "map": request.user.player.map,
             }
             )
     else:
         
         return JsonResponse(
             {
-                "error": "Sorry, can't move in that direction.", 
-                "coord": current_room.coordinates, 
-                "title": current_room.name, 
-                "description": current_room.description, 
-                "player_items": player.items,
-                "room_items": current_room.items,
-                "map": request.user.player.map,
-                }
+            "error": "Sorry, can't move in that direction.", 
+            "coord": current_room.coordinates, 
+            "title": current_room.name, 
+            "description": current_room.description, 
+            "player_items": player.items,
+            "room_items": current_room.items,
+            "map": request.user.player.map,
+            }
             )
 
 
@@ -98,20 +98,36 @@ def grab(request):
     player = user.player
     player_coords = player.coordinates
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-    item = Item.objects.filter(pk=int(data['item'])).first()
 
-    # Remove item from player inventory
-    del current_room.items[str(item.pk)]
+    error = None
+    # Try to get item
+    item = None
+    try:
+        current_room.items[str(data['item'])]
+        item = Item.objects.filter(pk=int(data['item'])).first()
+        
+        # Remove item from player inventory
+        del current_room.items[str(item.pk)]
+        player.items.update({str(item.pk): item.name})
+    except KeyError:
+        error = 'That item is not here!'
+
+    # Save player and room
+    player.save()   
     current_room.save()
 
-    player.items.update({str(item.pk): item.name})
-    player.save()
+    response = {
+                "player_items": player.items,
+                "room_items": current_room.items,
+                }
 
-    return JsonResponse({
-                            "Message": f"Picked Up: Item {item.name} from {current_room.name} to {user.username}",
-                            "player_items": player.items,
-                            "room_items": current_room.items,
-                        })
+    # Build Message
+    if item:
+        response.update({"message": f"Picked Up: Item {item.name} from {current_room.name} to {user.username}"})
+    # Inject error if caught into response
+    if error:
+        response.update({'error': error})
+    return JsonResponse(response)
 
 
 @csrf_exempt
@@ -122,18 +138,32 @@ def drop(request):
     player = user.player
     player_coords = player.coordinates
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-    item = Item.objects.filter(pk=int(data['item'])).first()
 
-    # Remove item from player inventory
-    del player.items[str(item.pk)]
+    error = None
+    # Try to get item
+    item = None
+    try:
+        item = Item.objects.filter(pk=int(data['item'])).first()
+
+        # Remove item from player inventory and place into room
+        del player.items[str(item.pk)]
+        current_room.items.update({str(item.pk): item.name})
+    except KeyError:
+        error = 'Player not holding that item!'
+
+
+
+    # Save player and room
+    current_room.save()
     player.save()
 
-    # Place item into current room
-    current_room.items.update({str(item.pk): item.name})
-    current_room.save()
-
-    return JsonResponse({
-                            "Message": f"Dropped: Item {item.name} from {user.username} to {current_room.name}",
-                            "player_items": player.items,
-                            "room_items": current_room.items,
-                        })
+    response = {
+                "player_items": player.items,
+                "room_items": current_room.items,
+                }
+    # Inject error if caught into response
+    if item:
+        response.update({"message": f"Dropped: Item {item.name} from {user.username} to {current_room.name}"})
+    if error:
+        response.update({'error': error})
+    return JsonResponse(response)
