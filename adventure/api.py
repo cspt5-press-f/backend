@@ -110,7 +110,7 @@ def grab(request):
         del current_room.items[str(item.pk)]
         player.items.update({str(item.pk): item.name})
     except KeyError:
-        error = 'That item is not here!'
+        error = f"That item is not here! {data['item']}"
 
     # Save player and room
     player.save()   
@@ -149,7 +149,7 @@ def drop(request):
         del player.items[str(item.pk)]
         current_room.items.update({str(item.pk): item.name})
     except KeyError:
-        error = 'Player not holding that item!'
+        error = f"Player not holding that item! {data['item']}"
 
 
 

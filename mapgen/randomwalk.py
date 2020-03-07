@@ -30,7 +30,7 @@ class RandomWalk():
         self.coordinates = self.build_map(size)
 
     def build_map(self, size):
-        new_coordinates = []
+        new_coordinates = [0, 0]
         while len(new_coordinates) < size:
             temp_coord = next(self.generator)
             if temp_coord in new_coordinates:
