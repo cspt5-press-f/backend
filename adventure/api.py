@@ -35,7 +35,7 @@ def move(request):
     move_direction = data["direction"]
     player_coords = copy.copy(request.user.player.coordinates)
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-    print(f'DEBUG: current_room {current_room}, coords {current_room.coordinates}')
+    # print(f'DEBUG: current_room {current_room}, coords {current_room.coordinates}')
     # print(vars(request.user.player))  # DEBUG STATEMENT.  COMMENT OUT IN PROD.
 
     if move_direction == "n":
@@ -48,7 +48,7 @@ def move(request):
         player_coords[0] = player_coords[0] - 1
         
     # print(f'DEBUG: player_map: {request.user.player.map}')
-    print(f'DEBUG: player_coord: {request.user.player.coordinates}')
+    # print(f'DEBUG: player_coord: {request.user.player.coordinates}')
 
     if Room.objects.filter(x=player_coords[0], y=player_coords[1]).exists():
         new_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
