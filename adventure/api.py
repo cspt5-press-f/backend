@@ -21,20 +21,23 @@ def initialize(request):
     player = user.player
     request.user.player.coordinates = [0,0] # Set the starting coords at the beginning of the map
     request.user.player.save() # Save the update to the DB
+    current_room = Room.objects.filter(x=0, y=0).first()
     return JsonResponse(
         {
-            "message": f"Welcome {user.username}",
-            "map": player.map,
-            "items": player.items,
-            }
-            )
-  
+        "message": f"Welcome {user.username}",
+        "map": player.map,
+        "player_items": player.items,
+        "room_items": current_room.items,
+        }
+        )
+
 # @csrf_exempt
 @api_view(["POST"])
 def move(request):
     data = json.loads(request.body)
     move_direction = data["direction"]
     player_coords = copy.copy(request.user.player.coordinates)
+    player = request.user.player
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
     # print(f'DEBUG: current_room {current_room}, coords {current_room.coordinates}')
     # print(vars(request.user.player))  # DEBUG STATEMENT.  COMMENT OUT IN PROD.
@@ -56,10 +59,12 @@ def move(request):
         request.user.player.coordinates = player_coords
         request.user.player.save()
         return JsonResponse(
-            {"coord": new_room.coordinates, 
+            {
+            "coord": new_room.coordinates, 
             "title": new_room.name, 
             "description": new_room.description, 
-            "items": new_room.items, 
+            "player_items": player.items,
+            "room_items": current_room.items,
             "map": request.user.player.map,
             }
             )
@@ -67,13 +72,14 @@ def move(request):
         
         return JsonResponse(
             {
-                "error": "Sorry, can't move in that direction.", 
-                "coord": current_room.coordinates, 
-                "title": current_room.name, 
-                "description": current_room.description, 
-                "items": current_room.items,
-                "map": request.user.player.map,
-                }
+            "error": "Sorry, can't move in that direction.", 
+            "coord": current_room.coordinates, 
+            "title": current_room.name, 
+            "description": current_room.description, 
+            "player_items": player.items,
+            "room_items": current_room.items,
+            "map": request.user.player.map,
+            }
             )
 
 
@@ -92,16 +98,36 @@ def grab(request):
     player = user.player
     player_coords = player.coordinates
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-    item = Item.objects.filter(pk=int(data['item'])).first()
 
-    # Remove item from player inventory
-    del current_room.items[str(item.pk)]
+    error = None
+    # Try to get item
+    item = None
+    try:
+        current_room.items[str(data['item'])]
+        item = Item.objects.filter(pk=int(data['item'])).first()
+        
+        # Remove item from player inventory
+        del current_room.items[str(item.pk)]
+        player.items.update({str(item.pk): item.name})
+    except KeyError:
+        error = 'That item is not here!'
+
+    # Save player and room
+    player.save()   
     current_room.save()
 
-    player.items.update({str(item.pk): item.name})
-    player.save()
+    response = {
+                "player_items": player.items,
+                "room_items": current_room.items,
+                }
 
-    return JsonResponse({"Picked Up": f"Item {item.name} from {current_room.name} to {user.username}"})
+    # Build Message
+    if item:
+        response.update({"message": f"Picked Up: Item {item.name} from {current_room.name} to {user.username}"})
+    # Inject error if caught into response
+    if error:
+        response.update({'error': error})
+    return JsonResponse(response)
 
 
 @csrf_exempt
@@ -112,14 +138,32 @@ def drop(request):
     player = user.player
     player_coords = player.coordinates
     current_room = Room.objects.filter(x=player_coords[0], y=player_coords[1]).first()
-    item = Item.objects.filter(pk=int(data['item'])).first()
 
-    # Remove item from player inventory
-    del player.items[str(item.pk)]
+    error = None
+    # Try to get item
+    item = None
+    try:
+        item = Item.objects.filter(pk=int(data['item'])).first()
+
+        # Remove item from player inventory and place into room
+        del player.items[str(item.pk)]
+        current_room.items.update({str(item.pk): item.name})
+    except KeyError:
+        error = 'Player not holding that item!'
+
+
+
+    # Save player and room
+    current_room.save()
     player.save()
 
-    # Place item into current room
-    current_room.items.update({str(item.pk): item.name})
-    current_room.save()
-
-    return JsonResponse({"Dropped": f"Item {item.name} from {user.username} to {current_room.name}"})
+    response = {
+                "player_items": player.items,
+                "room_items": current_room.items,
+                }
+    # Inject error if caught into response
+    if item:
+        response.update({"message": f"Dropped: Item {item.name} from {user.username} to {current_room.name}"})
+    if error:
+        response.update({'error': error})
+    return JsonResponse(response)
