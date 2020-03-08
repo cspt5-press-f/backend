@@ -64,7 +64,7 @@ def move(request):
             "title": new_room.name, 
             "description": new_room.description, 
             "player_items": player.items,
-            "room_items": current_room.items,
+            "room_items": new_room.items,
             "map": request.user.player.map,
             }
             )
