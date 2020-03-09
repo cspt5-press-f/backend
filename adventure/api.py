@@ -25,7 +25,7 @@ def initialize(request):
     return JsonResponse(
         {
         "message": f"Welcome {user.username}",
-        "map": player.map,
+        "map": player.map[::-1],
         "player_items": player.items,
         "room_items": current_room.items,
         }
